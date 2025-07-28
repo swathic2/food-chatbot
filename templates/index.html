@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Food Combination Chatbot</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: white;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left-side {
+      width: 45vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .left-side img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .right-side {
+      flex: 1;
+      background: url("/static/images/background.jpg") no-repeat center center fixed;
+      background-size: cover;
+      padding: 40px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      color: white;
+    }
+
+    .right-side::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 0;
+    }
+
+    .right-side > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin-bottom: 40px;
+      font-size: 36px;
+      text-align: center;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    form {
+      max-width: 450px;
+      margin: 0 auto;
+    }
+
+    input[type="text"], select, button {
+      width: 100%;
+      padding: 15px;
+      margin: 15px 0;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    input[type="text"], select {
+      background-color: #333;
+      color: #fff;
+    }
+
+    input[type="text"]::placeholder {
+      color: #bbb;
+    }
+
+    button {
+      background-color: #28a745;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #1e7e34;
+    }
+
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #28a745;
+      color: #fff;
+      text-align: center;
+      padding: 12px;
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 8px;
+      z-index: 1;
+      transition: visibility 0s, opacity 0.5s linear;
+      opacity: 0;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+      .left-side {
+        width: 100%;
+        height: 300px;
+      }
+      .right-side {
+        flex: none;
+        padding: 20px;
+      }
+      form {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="left-side">
+    <img src="/static/images/anime.gif" alt="Big Anime GIF" />
+  </div>
+
+  <div class="right-side">
+    <h1>AI-Based Food Combination Chatbot</h1>
+    <form id="inputForm">
+      <input type="text" name="ingredients" placeholder="Enter ingredients (comma-separated)" />
+      <select name="diet">
+        <option value="">Select Diet Preference (Optional)</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="vegan">Vegan</option>
+        <option value="non vegetarian">Non Vegetarian</option>
+      </select>
+      <input type="text" name="allergy" placeholder="Any allergies? (e.g., nuts, gluten)" />
+      <button type="submit">Generate Recipes</button>
+    </form>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let currentUtterance = null;
+
+    function speakText(text) {
+      stopSpeech();
+      currentUtterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(currentUtterance);
+    }
+
+    function stopSpeech() {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "show";
+      setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+      }, 3000);
+    }
+
+    document.getElementById("inputForm").onsubmit = async function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+
+      try {
+        const res = await fetch("/recommend", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+          showToast("No recipes found!");
+          return;
+        }
+
+        let recipesWindow = window.open('', '_blank');
+
+        recipesWindow.document.write(`
+          <html>
+          <head>
+            <title>Generated Recipes</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                background: url("/static/images/background.jpg") no-repeat center center fixed;
+                background-size: cover;
+                color: #fff;
+              }
+              .recipe {
+                background: rgba(0, 0, 0, 0.7);
+                padding: 20px;
+                margin-bottom: 20px;
+                border-radius: 10px;
+              }
+              img {
+                max-width: 250px;
+                max-height: 180px;
+                border-radius: 8px;
+              }
+              .rating-stars {
+                color: gold;
+                font-size: 22px;
+              }
+              .rating-stars span {
+                cursor: pointer;
+                padding: 0 5px;
+              }
+              .feedback {
+                margin-top: 8px;
+              }
+              button {
+                margin-right: 10px;
+                margin-top: 8px;
+              }
+            </style>
+          </head>
+          <body>
+            <button onclick="window.location.href='/logout'" style="position:fixed;top:20px;right:20px;padding:8px 16px;background:#e74c3c;color:#fff;border:none;border-radius:6px;cursor:pointer;z-index:9999;">
+              Logout
+            </button>
+            <h2>🍲 Generated Recipes</h2>
+        `);
+
+        data.forEach((item, index) => {
+          let steps = (item.instructions.match(/\.\s/g) || []).length + 1;
+          let estimatedTime = Math.max(10, steps * 3);
+
+          const nutritionDB = {
+            "tomato": ["Vitamin C", "Potassium"],
+            "spinach": ["Iron", "Calcium"],
+            "chicken": ["Protein", "Vitamin B6"],
+            "egg": ["Protein", "Vitamin D"],
+            "milk": ["Calcium", "Vitamin B12"],
+            "carrot": ["Vitamin A", "Fiber"],
+            "nuts": ["Healthy Fats", "Magnesium"],
+            "rice": ["Carbohydrates", "B Vitamins"]
+          };
+
+          let estimatedNutrition = [];
+          let ingredientList = item.ingredients.toLowerCase().split(/[,\n]+/);
+          ingredientList.forEach(ing => {
+            for (const [key, nutrients] of Object.entries(nutritionDB)) {
+              if (ing.includes(key)) {
+                nutrients.forEach(nutrient => {
+                  if (!estimatedNutrition.includes(nutrient)) {
+                    estimatedNutrition.push(nutrient);
+                  }
+                });
+              }
+            }
+          });
+
+          let tags = estimatedNutrition.map(n => `<span style='color:lime'>✅ ${n}</span>`).join(" &nbsp;");
+
+          recipesWindow.document.write(`
+            <div class="recipe" data-index="${index}">
+              <h3>${item.title}</h3>
+              <img src="/static/images/${item.image}" onerror="this.onerror=null;this.src='/static/images/placeholder.jpg';" />
+              <p><b>🧂 Ingredients:</b> ${item.ingredients}</p>
+              <p><b>👩‍🍳 Instructions:</b> ${item.instructions}</p>
+              <button onclick="speakText(\`${item.instructions.replace(/`/g, "\\`")}\`)">🔊 Let Chef Read</button>
+              <button onclick="stopSpeech()">🔇 Stop Reading</button>
+              <button onclick="copyToClipboard(\`${item.instructions.replace(/`/g, "\\`")}\`)">📋 Copy Steps</button>
+              <p><b>💪 Nutrients:</b><br>${tags}</p>
+              <p><b>⏱ Time:</b> ${item.time || estimatedTime} minutes</p>
+              <p><b>⭐ Your Rating:</b>
+                <span class="rating-stars">
+                  <span data-value="1">☆</span>
+                  <span data-value="2">☆</span>
+                  <span data-value="3">☆</span>
+                  <span data-value="4">☆</span>
+                  <span data-value="5">☆</span>
+                </span>
+              </p>
+              <div class="feedback">
+                <b>Was this helpful?</b>
+                <button onclick="alert('Thanks for your feedback!')">👍</button>
+                <button onclick="alert('We will try to improve!')">👎</button>
+              </div>
+              <hr>
+            </div>
+          `);
+        });
+
+        recipesWindow.document.write(`
+          <script>
+            const ratingContainers = document.querySelectorAll('.rating-stars');
+            ratingContainers.forEach(container => {
+              const stars = container.querySelectorAll('span[data-value]');
+              stars.forEach(star => {
+                star.addEventListener('click', () => {
+                  const rating = parseInt(star.getAttribute('data-value'));
+                  stars.forEach((s, idx) => {
+                    s.textContent = (idx < rating) ? '★' : '☆';
+                  });
+                  alert('You rated this recipe ' + rating + ' star' + (rating > 1 ? 's' : '') + '. Thanks!');
+                });
+              });
+            });
+
+            function speakText(text) {
+              if(window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+              }
+              let utterance = new SpeechSynthesisUtterance(text);
+              window.speechSynthesis.speak(utterance);
+            }
+
+            function stopSpeech() {
+              if(window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+              }
+            }
+
+            function copyToClipboard(text) {
+              navigator.clipboard.writeText(text).then(() => {
+                alert('Copied steps to clipboard!');
+              });
+            }
+          <\/script>
+          </body>
+          </html>
+        `);
+
+        recipesWindow.document.close();
+
+      } catch (error) {
+        console.error(error);
+        showToast("Error generating recipes.");
+      }
+    };
+  </script>
+</body>
+</html>
