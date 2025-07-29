@@ -110,7 +110,7 @@ food-chatbot/
 
 ### 📝 Feedback Page
 
-<img width="1919" height="1016" alt="Feedback Page" src="https://github.com/user-attachments/assets/ab255241-fb14-47bf-86b4-07d3f6f2dc7b" />
+<img width="1919" height="1007" alt="Screenshot 2025-06-03 182906" src="https://github.com/user-attachments/assets/01ff9a98-5875-4bbf-a34e-0b8869f0f1bd" />
 
 ---
 
