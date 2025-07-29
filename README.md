@@ -72,7 +72,7 @@ food-chatbot/
 ## 📸 Screenshots & Visuals
 ## 🔐 Login Page
 <img width="1919" height="1024" alt="Screenshot 2025-06-03 182647" src="https://github.com/user-attachments/assets/d7b29e0b-80bd-45d0-9939-3fa36479b81e" />
-## 📝 Signup Page
+##  📝 Signup Page
 <img width="1916" height="1015" alt="Screenshot 2025-06-03 182708" src="https://github.com/user-attachments/assets/ef953dd2-6657-4105-944e-6b7623c97ebb" />
 ## 🍽️ Generate Recipes Page
 <img width="1919" height="1014" alt="Screenshot 2025-06-03 182735" src="https://github.com/user-attachments/assets/f2dd4e17-b0bb-4903-8c17-515e6162f70d" />
